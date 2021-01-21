@@ -126,17 +126,17 @@ function addEmployee() {
       {
         name: "lastName",
         type: "input",
-        message: "What is the item you would like to submit?"
+        message: "What is the last name?"
       },
       {
         name: "role",
         type: "input",
-        message: "What category would you like to place your auction in?"
+        message: "What role id will this employee have?"
       },
       {
         name: "managerId",
         type: "input",
-        message: "What would you like your starting bid to be?"
+        message: "What will be the manager id for this employee?"
       },
     ])
     .then(function(answer) {
@@ -145,7 +145,7 @@ function addEmployee() {
         {
           first_name: answer.first_name,
           last_name: answer.last_name,
-          role: answer.role,
+          role_id: answer.role_id,
           manager_id: answer.manager_id
         },
         function(err) {
@@ -184,117 +184,109 @@ function viewEmployee() {
   inquirer
     .prompt([
       {
-        name: "department",
+        name: "employees",
         type: "input",
-        message: "What department would you like to add?"
+        message: "What is the first name of the employee would you like to view?"
       },
       {
-        name: "item",
+        name: "lastName",
         type: "input",
-        message: "What is the item you would like to submit?"
+        message: "What is the last name?"
       },
       {
-        name: "category",
+        name: "employeeRole",
         type: "input",
-        message: "What category would you like to place your auction in?"
+        message: "What role does this employee hold?"
       },
       {
-        name: "startingBid",
+        name: "managersID",
         type: "input",
-        message: "What would you like your starting bid to be?"
+        message: "Does this employee have a manange Id?"
       },
     ])
     .then(function(answer) {
       connection.query(
-        "INSERT INTO department SET ?",
+        "SELECT * FROM employee",
         {
-          name: answer.department
+          first_name: answer.first_name,
+          last_name: answer.last_name,
+          role_id: answer.role_id,
+          manager_id: answer.manager_id
         },
         function(err) {
           if (err) throw err;
-          console.log("Your department was created successfully!");
           start();
         }
       );
     });
 }
+
 function viewRole() {
   inquirer
     .prompt([
       {
-        name: "department",
+        name: "title",
         type: "input",
-        message: "What department would you like to add?"
-      },
-      {
-        name: "item",
-        type: "input",
-        message: "What is the item you would like to submit?"
-      },
-      {
-        name: "category",
-        type: "input",
-        message: "What category would you like to place your auction in?"
-      },
-      {
-        name: "startingBid",
-        type: "input",
-        message: "What would you like your starting bid to be?"
+        message: "What is the title of this employee?"
       },
     ])
     .then(function(answer) {
       connection.query(
-        "INSERT INTO department SET ?",
+        "SELECT * FROM role",
         {
-          name: answer.department
+          title: answer.title
         },
         function(err) {
           if (err) throw err;
-          console.log("Your department was created successfully!");
           start();
         }
       );
     });
 }
+
 function updateEmployeeRole() {
   inquirer
     .prompt([
       {
-        name: "department",
+        name: "departmentID",
         type: "input",
-        message: "What department would you like to add?"
+        message: "What is the department Id this employee works in?"
       },
       {
-        name: "item",
+        name: "title",
         type: "input",
-        message: "What is the item you would like to submit?"
+        message: "What what is the role of this employee?"
       },
       {
-        name: "category",
+        name: "firstName",
         type: "input",
-        message: "What category would you like to place your auction in?"
+        message: "What is this employee's first name?"
       },
       {
-        name: "startingBid",
+        name: "lastName",
         type: "input",
-        message: "What would you like your starting bid to be?"
+        message: "What is the last name?"
       },
       {
-        name: "category",
+        name: "role",
         type: "input",
-        message: "What category would you like to place your auction in?"
+        message: "What is the role Id of this employee?"
       },
     ])
     .then(function(answer) {
       connection.query(
-        "INSERT INTO department SET ?",
+        "SELECT * FROM INNER JOIN ?",
         {
-          name: answer.department
+          department_id: answer.department_id,
+          title: answer.title,
+          first_name: answer.first_name,
+          last_name: answer.last_name,
+          role_id: answer.role_id
         },
         function(err) {
           if (err) throw err;
-          console.log("Your department was created successfully!");
-          start();
+          console.log("Your employee role has been successfully updated!");
+          connection.end()
         }
       );
     });
