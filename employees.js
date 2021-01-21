@@ -1,5 +1,6 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
+const cTable = require('console.table');
 
 var connection = mysql.createConnection({
   host: "localhost",
@@ -14,134 +15,290 @@ connection.connect(function(err) {
   start();
 });
 
-// function which prompts the user for what action they should take
+
 function start() {
   inquirer
     .prompt({
       name: "addViewUpdate",
       type: "list",
       message: "Would you like to do?",
-      choices: ["ADD departments, ADD roles, ADD employees", "VIEW departments, VIEW roles, VIEW employess", "UPDATE employee roles"]
+      choices: ["ADD departments", "ADD roles", "ADD employees", "VIEW departments", "VIEW roles", "VIEW employess", "UPDATE employee roles"]
+    })
+    .then(function(answer) {
+
+      if (answer.addViewUpdate === "ADD departments") {
+        addDepartment();
+      }
+      else if(answer.addViewUpdate === "ADD roles") {
+        addRole();
+      }
+      else if(answer.addViewUpdate === "ADD employees") {
+        addEmployee();
+      }
+      else if(answer.addViewUpdate === "VIEW departments") {
+        viewDepartment();
+      }
+      else if(answer.addViewUpdate === "VIEW roles") {
+        viewRole();
+      }
+      else if(answer.addViewUpdate === "VIEW employees") {
+        viewEmployee();
+      }
+      else if(answer.addViewUpdate === "UPDATE employee roles") {
+        updateEmployeeRole();
+      } 
     });
-//     .then(function(answer) {
-//       // based on their answer, either call the bid or the post functions
-//       if (answer.addViewUpdate === "ADD") {
-//         postAuction();
-//       }
-//       else if(answer.postOrBid === "VIEW") {
-//         bidAuction();
-//       } else{
-//         connection.end();
-//       } 
-//     });
-// }
+}
 
-// // function to handle posting new items up for auction
-// function postAuction() {
-//   // prompt for info about the item being put up for auction
-//   inquirer
-//     .prompt([
-//       {
-//         name: "item",
-//         type: "input",
-//         message: "What is the item you would like to submit?"
-//       },
-//       {
-//         name: "category",
-//         type: "input",
-//         message: "What category would you like to place your auction in?"
-//       },
-//       {
-//         name: "startingBid",
-//         type: "input",
-//         message: "What would you like your starting bid to be?",
-//         validate: function(value) {
-//           if (isNaN(value) === false) {
-//             return true;
-//           }
-//           return false;
-//         }
-//       }
-//     ])
-//     .then(function(answer) {
-//       // when finished prompting, insert a new item into the db with that info
-//       connection.query(
-//         "INSERT INTO auctions SET ?",
-//         {
-//           item_name: answer.item,
-//           category: answer.category,
-//           starting_bid: answer.startingBid || 0,
-//           highest_bid: answer.startingBid || 0
-//         },
-//         function(err) {
-//           if (err) throw err;
-//           console.log("Your auction was created successfully!");
-//           // re-prompt the user for if they want to bid or post
-//           start();
-//         }
-//       );
-//     });
-// }
+function addDepartment() {
+  inquirer
+    .prompt([
+      {
+        name: "newDepartment",
+        type: "input",
+        message: "What department would you like to add?",
+      }
+    ])
+    .then(function(answer) {
+      connection.query(
+        "INSERT INTO department SET ?",
+        {
+          name: answer.department
+        },
+        function(err) {
+          if (err) throw err;
+          console.log("Your department was created successfully!");
+          start();
+        }
+      );
+    });
+}
 
-// function bidAuction() {
-//   // query the database for all items being auctioned
-//   connection.query("SELECT * FROM auctions", function(err, results) {
-//     if (err) throw err;
-//     // once you have the items, prompt the user for which they'd like to bid on
-//     inquirer
-//       .prompt([
-//         {
-//           name: "choice",
-//           type: "rawlist",
-//           choices: function() {
-//             var choiceArray = [];
-//             for (var i = 0; i < results.length; i++) {
-//               choiceArray.push(results[i].item_name);
-//             }
-//             return choiceArray;
-//           },
-//           message: "What auction would you like to place a bid in?"
-//         },
-//         {
-//           name: "bid",
-//           type: "input",
-//           message: "How much would you like to bid?"
-//         }
-//       ])
-//       .then(function(answer) {
-//         // get the information of the chosen item
-//         var chosenItem;
-//         for (var i = 0; i < results.length; i++) {
-//           if (results[i].item_name === answer.choice) {
-//             chosenItem = results[i];
-//           }
-//         }
+function addRole() {
+  inquirer
+    .prompt([
+      {
+        name: "newRole",
+        type: "input",
+        message: "What employee role would you like to add?"
+      },
+      {
+        name: "title",
+        type: "input",
+        message: "What is the title you would like to add?"
+      },
+      {
+        name: "salary",
+        type: "input",
+        message: "What is the salary this role will be paid?"
+      },
+      {
+        name: "departmentId",
+        type: "input",
+        message: "What is the department ID?"
+      },
+    ])
+    .then(function(answer) {
+      connection.query(
+        "INSERT INTO role SET ?",
+        {
+          title: answer.title,
+          salary: answer.salary,
+          department_id: answer.department_id
+        },
+        function(err) {
+          if (err) throw err;
+          console.log("Your new employee role, title, salary and department id was created successfully!");
+          start();
+        }
+      );
+    });
+}
 
-//         // determine if bid was high enough
-//         if (chosenItem.highest_bid < parseInt(answer.bid)) {
-//           // bid was high enough, so update db, let the user know, and start over
-//           connection.query(
-//             "UPDATE auctions SET ? WHERE ?",
-//             [
-//               {
-//                 highest_bid: answer.bid
-//               },
-//               {
-//                 id: chosenItem.id
-//               }
-//             ],
-//             function(error) {
-//               if (error) throw err;
-//               console.log("Bid placed successfully!");
-//               start();
-//             }
-//           );
-//         }
-//         else {
-//           // bid wasn't high enough, so apologize and start over
-//           console.log("Your bid was too low. Try again...");
-//           start();
-//         }
-//       });
-//   });
-// }
+function addEmployee() {
+  inquirer
+    .prompt([
+      {
+        name: "firstName",
+        type: "input",
+        message: "What is the first name of the employee you would like to add?"
+      },
+      {
+        name: "lastName",
+        type: "input",
+        message: "What is the item you would like to submit?"
+      },
+      {
+        name: "role",
+        type: "input",
+        message: "What category would you like to place your auction in?"
+      },
+      {
+        name: "managerId",
+        type: "input",
+        message: "What would you like your starting bid to be?"
+      },
+    ])
+    .then(function(answer) {
+      connection.query(
+        "INSERT INTO employee SET ?",
+        {
+          first_name: answer.first_name,
+          last_name: answer.last_name,
+          role: answer.role,
+          manager_id: answer.manager_id
+        },
+        function(err) {
+          if (err) throw err;
+          console.log("Your new employee was created successfully!");
+          start();
+        }
+      );
+    });
+}
+
+function viewDepartment() {
+  inquirer
+    .prompt([
+      {
+        name: "department",
+        type: "input",
+        message: "What department would you like to view?",
+      }
+    ])
+    .then(function(answer) {
+      connection.query(
+        "SELECT * FROM department",
+        {
+          name: answer.department
+        },
+        function(err) {
+          if (err) throw err;
+          start();
+        }
+      );
+    });
+}
+
+function viewEmployee() {
+  inquirer
+    .prompt([
+      {
+        name: "department",
+        type: "input",
+        message: "What department would you like to add?"
+      },
+      {
+        name: "item",
+        type: "input",
+        message: "What is the item you would like to submit?"
+      },
+      {
+        name: "category",
+        type: "input",
+        message: "What category would you like to place your auction in?"
+      },
+      {
+        name: "startingBid",
+        type: "input",
+        message: "What would you like your starting bid to be?"
+      },
+    ])
+    .then(function(answer) {
+      connection.query(
+        "INSERT INTO department SET ?",
+        {
+          name: answer.department
+        },
+        function(err) {
+          if (err) throw err;
+          console.log("Your department was created successfully!");
+          start();
+        }
+      );
+    });
+}
+function viewRole() {
+  inquirer
+    .prompt([
+      {
+        name: "department",
+        type: "input",
+        message: "What department would you like to add?"
+      },
+      {
+        name: "item",
+        type: "input",
+        message: "What is the item you would like to submit?"
+      },
+      {
+        name: "category",
+        type: "input",
+        message: "What category would you like to place your auction in?"
+      },
+      {
+        name: "startingBid",
+        type: "input",
+        message: "What would you like your starting bid to be?"
+      },
+    ])
+    .then(function(answer) {
+      connection.query(
+        "INSERT INTO department SET ?",
+        {
+          name: answer.department
+        },
+        function(err) {
+          if (err) throw err;
+          console.log("Your department was created successfully!");
+          start();
+        }
+      );
+    });
+}
+function updateEmployeeRole() {
+  inquirer
+    .prompt([
+      {
+        name: "department",
+        type: "input",
+        message: "What department would you like to add?"
+      },
+      {
+        name: "item",
+        type: "input",
+        message: "What is the item you would like to submit?"
+      },
+      {
+        name: "category",
+        type: "input",
+        message: "What category would you like to place your auction in?"
+      },
+      {
+        name: "startingBid",
+        type: "input",
+        message: "What would you like your starting bid to be?"
+      },
+      {
+        name: "category",
+        type: "input",
+        message: "What category would you like to place your auction in?"
+      },
+    ])
+    .then(function(answer) {
+      connection.query(
+        "INSERT INTO department SET ?",
+        {
+          name: answer.department
+        },
+        function(err) {
+          if (err) throw err;
+          console.log("Your department was created successfully!");
+          start();
+        }
+      );
+    });
+}
+
+
+
